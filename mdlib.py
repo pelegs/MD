@@ -18,11 +18,18 @@ class atom:
         self.m      = 1.0
         self.v_half = np.zeros(3).astype(double)
 
-    def move1(self, dt):
+        self.neighbors = []
+
+    def move1(self, dt, L):
         ''' verlet velocity integration 
             part 1 '''
         self.v_half = self.vel + self.acc*dt/2
         self.pos = self.pos + self.v_half*dt
+        for i,x in enumerate(self.pos):
+            if self.pos[i] < 0:
+                self.pos[i] += L
+            if self.pos[i] > L:
+                self.pos[i] -= L
     
     def add_force(self, F):
         self.F = self.F + F
@@ -40,3 +47,11 @@ class atom:
     def data(self):
         outStr = ' '.join(map(str, self.pos))
         return outStr
+
+def calc_lattice(s, e, N):
+    step1 = np.indices((N, N, N))
+    step2 = step1/(N-1)*(e-s)+s
+    return step2.T.reshape(-1, 3)
+
+#def get_neighboring_indices(x, y, z, N):
+
