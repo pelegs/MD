@@ -1,3 +1,8 @@
+#################################
+# MD simulation of Argon atoms  #
+# Written by Peleg Bar Sapir    #
+#################################
+
 import numpy as np
 import mdlibc
 from itertools import chain
@@ -5,11 +10,16 @@ import sys
 
 double = np.float64
 
+axes = np.array([[1, 0, 0], [-1, 0, 0],
+                 [0, 1, 0], [0, -1, 0],
+                 [0, 0, 1], [0, 0, -1]])
+
 class atom:
     def __init__(self,
-                 pos    = np.zeros(3),
-                 vel    = np.zeros(3),
-                 box    = None):
+                 pos     = np.zeros(3),
+                 vel     = np.zeros(3),
+                 box     = None,
+                 element = 'Ar'):
         
         self.pos  = pos.astype(double)
         self.vel  = vel.astype(double)
@@ -21,6 +31,8 @@ class atom:
 
         self.cell = np.floor(self.pos / box.L * box.N-2).astype(int) + 3*[2]
         self.neighbors = []
+
+        self.element = element
 
     def set_neighbors(self, box):
         self.neighbors = []
@@ -76,9 +88,12 @@ class sim_box:
 
     def insert(self, a):
         index = a.cell
-        sys.stderr.write(' '.join(map(str, a.pos )) + '\n')
-        sys.stderr.write(' '.join(map(str, a.cell)) + '\n')
+        #sys.stderr.write(' '.join(map(str, a.pos )) + '\n')
+        #sys.stderr.write(' '.join(map(str, a.cell)) + '\n')
         self.cells[index[0]][index[1]][index[2]].append(a)
+       
+    def create_ghosts(self):
+        return
 
     def reset(self):
         self.cells = [[[[] for _ in range(self.N[0]+2)]
