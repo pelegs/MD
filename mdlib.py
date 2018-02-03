@@ -52,12 +52,10 @@ class atom:
 
     def return_to_box(self, box):
         for i, x in enumerate(self.pos):
-            if x < 0:
-                dL = np.ceil(-x/box.L[i]) * box.L[i]
-                self.pos[i] += dL
-            if x > box.L[i]:
-                dL = np.floor(x/box.L[i]) * box.L[i]
-                self.pos[i] -= dL 
+            if self.pos[i] < 0:
+                self.pos[i] += box.L[i]
+            if self.pos[i] > box.L[i]:
+                self.pos[i] -= box.L[i]
 
     def Ekin(self, N):
         return 1.0/(2.0*N) * mdlibc.dot(self.vel, self.vel)
@@ -78,6 +76,8 @@ class sim_box:
 
     def insert(self, a):
         index = a.cell
+        sys.stderr.write(' '.join(map(str, a.pos )) + '\n')
+        sys.stderr.write(' '.join(map(str, a.cell)) + '\n')
         self.cells[index[0]][index[1]][index[2]].append(a)
 
     def reset(self):
@@ -102,3 +102,12 @@ def get_neighboring_indices(x, y, z, Nx, Ny, Nz):
             c = np.delete(c, (i), axis=0)
     
     return c
+
+def zero_vcm(group):
+    v_cm = np.zeros(3)
+    for a in group:
+        v_cm += a.vel
+    v_cm = 1/len(group) * v_cm
+    for i, a in enumerate(group):
+        group[i].vel += v_cm
+    return
