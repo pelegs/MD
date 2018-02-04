@@ -72,17 +72,30 @@ class atom:
 
     def Ekin(self, N):
         return 1.0/(2.0*N) * mdlibc.dot(self.vel, self.vel)
+    
+    def Ekin(self, N):
+        return 1.0/(2.0*N) * mdlibc.dot(self.vel, self.vel)
 
-    def data(self):
-        outStr = self.element + ' ' \
-               + ' '.join(map(str, self.pos)) + ' '
-        '''
-               + ' '.join(map(str, self.cell)) + ' ' \
-               + str(self.ID) + ' '                  \
-               + str(len(self.neighbors)) + ': '
-        for neighbor in self.neighbors:
-            outStr += str(neighbor.ID) + ' '
-        '''
+    def data(self, element=True, pos=True, vel=True, vel_mag=False,
+                   cells=True, ID=True, neighbors=True):
+        outStr = ''
+        if element:
+            outStr += self.element + ' '
+        if pos:
+            outStr += ' '.join(map(str, self.pos)) + ' '
+        if vel:
+            outStr += ' '.join(map(str, self.vel)) + ' '
+        if vel_mag:
+            outStr += str(np.linalg.norm(self.vel)) + ' '
+        if ID:
+            outStr += str(self.ID) + ' '
+        if cells:
+            outStr += ' '.join(map(str, self.cell)) + ' '
+        if neighbors:
+            outStr += str(len(self.neighbors)) + ': '
+            for neighbor in self.neighbors:
+                outStr += str(neighbor.ID) + ' '
+        
         return outStr
 
 class sim_box:
@@ -129,3 +142,14 @@ def zero_vcm(group):
     for i, a in enumerate(group):
         group[i].vel += v_cm
     return
+
+def set_Ek(group, T, m=1.0):
+    N = len(group)
+    E = np.sqrt(2*T/m)
+    for i, atom in enumerate(group):
+        a1 = np.random.uniform(0, 2*np.pi)
+        a2 = np.random.uniform(0, np.pi)
+        vel = np.array([E*np.sin(a1)*np.cos(a2),
+                        E*np.sin(a1)*np.sin(a2),
+                        E*np.cos(a1)])
+        group[i].vel = vel
