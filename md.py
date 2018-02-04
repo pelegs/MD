@@ -8,17 +8,17 @@ from mdlib import *
 import mdlibc
 import sys
 
-N_atoms = 3
-max_time = 300
+N_atoms = 8
+max_time = 1000
 dt = 0.005
 sigma = 1.0
-L = 50.0
+L = 95.0
 N_cells = int(np.floor(L/(sigma*2.5)))
 box = sim_box(N = 3*[N_cells],
               L = 3*[L])
-grid = calc_lattice(0.1, 0.95*L, N_atoms)
+grid = calc_lattice(0.1, 0.9*L, N_atoms)
 atoms = [atom(pos = grid[i],
-              vel = np.random.normal(0.0, 50*sigma, size=(1, 3)).flatten(),
+              vel = np.random.normal(0.0, 5*sigma, size=(1, 3)).flatten(),
               box = box,
               element = 'Ar',
               ID  = i)
@@ -41,8 +41,8 @@ for t in range(0, max_time):
         a.return_to_box(box)
         print(a.data())
         for b in a.neighbors:
-            #F = mdlibc.LJ_force(a.pos, b.pos,
-            #                    box.L[0], box.L[1], box.L[2])
+            F = mdlibc.LJ_force(a.pos, b.pos,
+                                box.L[0], box.L[1], box.L[2])
             print('', end='')
     
     for a in atoms:
