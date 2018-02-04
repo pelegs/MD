@@ -1,5 +1,6 @@
 #################################
 # MD simulation of Argon atoms  #
+# Classes and simple functions  #
 # Written by Peleg Bar Sapir    #
 #################################
 
@@ -19,7 +20,8 @@ class atom:
                  pos     = np.zeros(3),
                  vel     = np.zeros(3),
                  box     = None,
-                 element = 'Ar'):
+                 element = 'Ar',
+                 ID      = -1):
         
         self.pos  = pos.astype(double)
         self.vel  = vel.astype(double)
@@ -29,21 +31,20 @@ class atom:
         self.m      = 1.0
         self.v_half = np.zeros(3).astype(double)
 
-        self.cell = np.floor(self.pos / box.L * box.N-2).astype(int) + 3*[2]
+        self.cell = np.floor(self.pos / box.L * box.N-2).astype(int)
         self.neighbors = []
 
         self.element = element
+        self.ID = ID
 
     def set_neighbors(self, box):
         self.neighbors = []
-        self.cell = np.floor(self.pos / box.L * box.N-2).astype(int) + 3*[2]
+        self.cell = np.floor(self.pos / box.L * box.N).astype(int)
         cells = list(chain(*[box.cells[i][j][k]
                              for (i, j, k) in get_neighboring_indices(self.cell[0],
                                                                       self.cell[1],
                                                                       self.cell[2],
-                                                                      box.N[0],
-                                                                      box.N[1],
-                                                                      box.N[2])]))
+                                                                      box.N)]))
         self.neighbors = [b for b in cells if b is not self]
 
     def move1(self, dt):
@@ -73,17 +74,23 @@ class atom:
         return 1.0/(2.0*N) * mdlibc.dot(self.vel, self.vel)
 
     def data(self):
-        outStr = ' '.join(map(str, self.pos)) + ' '
-        outStr += ' '.join(map(str, self.cell)) + ' '
-        outStr += str(len(self.neighbors))
+        outStr = self.element + ' ' \
+               + ' '.join(map(str, self.pos)) + ' '
+        '''
+               + ' '.join(map(str, self.cell)) + ' ' \
+               + str(self.ID) + ' '                  \
+               + str(len(self.neighbors)) + ': '
+        for neighbor in self.neighbors:
+            outStr += str(neighbor.ID) + ' '
+        '''
         return outStr
 
 class sim_box:
     def __init__(self, N=np.zeros(3), L=np.zeros(3)):
-        self.cells = [[[[] for _ in range(N[0]+2)]
-                           for _ in range(N[1]+2)]
-                           for _ in range(N[2]+2)]
-        self.N = N + np.array(3*[2]).astype(int)
+        self.cells = [[[[] for _ in range(N[0])]
+                           for _ in range(N[1])]
+                           for _ in range(N[2])]
+        self.N = N
         self.L = L
 
     def insert(self, a):
@@ -92,13 +99,10 @@ class sim_box:
         #sys.stderr.write(' '.join(map(str, a.cell)) + '\n')
         self.cells[index[0]][index[1]][index[2]].append(a)
        
-    def create_ghosts(self):
-        return
-
     def reset(self):
-        self.cells = [[[[] for _ in range(self.N[0]+2)]
-                           for _ in range(self.N[1]+2)]
-                           for _ in range(self.N[2]+2)]
+        self.cells = [[[[] for _ in range(self.N[0])]
+                           for _ in range(self.N[1])]
+                           for _ in range(self.N[2])]
 
 def calc_lattice(s, e, N):
     # this should be made not a cube
@@ -106,15 +110,14 @@ def calc_lattice(s, e, N):
     b = a/(N-1)*(e-s)+s
     return b.T.reshape(-1, 3)
 
-def get_neighboring_indices(x, y, z, Nx, Ny, Nz):
+def get_neighboring_indices(x, y, z, N):
     a = np.indices((3, 3, 3))
     b = a.T.reshape(-1, 3)
     c = b + np.array([x-1, y-1, z-1])
 
-    # filtering by edges
-    for i, row in reversed(list(enumerate(c))):
-        if -1 in row or row[0] >= Nx or row[1] >= Ny or row[2] >= Nz:
-            c = np.delete(c, (i), axis=0)
+    for row in c:
+        for i, e in enumerate(row):
+            row[i] = row[i] % N[i]
     
     return c
 
