@@ -155,3 +155,7 @@ def set_Ek(group, T, m=1.0):
                         E*np.sin(a1)*np.sin(a2),
                         E*np.cos(a1)])
         group[i].vel = vel
+
+def set_temperature(group, T):
+    N = len(group)
+    set_Ek(group, 1.5*N*T)
