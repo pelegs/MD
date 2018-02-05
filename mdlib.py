@@ -31,7 +31,7 @@ class atom:
         self.m      = 1.0
         self.v_half = np.zeros(3).astype(double)
 
-        self.cell = np.floor(self.pos / box.L * box.N-2).astype(int)
+        self.cell = np.floor(self.pos / box.L * box.N).astype(int)
         self.neighbors = []
 
         self.element = element
@@ -69,6 +69,8 @@ class atom:
                 self.pos[i] += box.L[i]
             if self.pos[i] > box.L[i]:
                 self.pos[i] -= box.L[i]
+        
+        self.cell = np.floor(self.pos / box.L * box.N).astype(int)
 
     def Ekin(self, N):
         return 1.0/(2.0*N) * mdlibc.dot(self.vel, self.vel)

@@ -9,10 +9,10 @@ import mdlibc
 import sys
 
 N_atoms = 7 
-max_time = 1000
-dt = 0.01 
+max_time = 750
+dt = 0.05 
 sigma = 1.0
-L = 50.0
+L = 150.0
 N_cells = int(np.floor(L/(sigma*2.5)))
 box = sim_box(N = 3*[N_cells],
               L = 3*[L])
@@ -24,12 +24,13 @@ atoms = [atom(pos = grid[i],
          for i in range(N_atoms**3)]
 
 #Ek = np.random.normal(3.0, 1.5)
-Ek = 13.37
+Ek = 2.5
 sys.stderr.write('T = ' + str(Ek) + '\n')
 for a in atoms:
     a.vel = np.array(3*[2.5]) - a.pos
 set_Ek(atoms, Ek)
 zero_vcm(atoms)
+
 for a in atoms:
     box.insert(a)
     a.set_neighbors(box)
@@ -47,7 +48,7 @@ for t in range(0, max_time):
                      pos       = True,
                      vel       = False,
                      vel_mag   = False,
-                     cells     = False,
+                     cells     = True,
                      ID        = False,
                      neighbors = False))
         for b in a.neighbors:
